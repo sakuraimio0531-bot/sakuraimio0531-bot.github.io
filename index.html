@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nexus Hub | 個人創意與數位作品集</title>
-  <link rel="stylesheet" href="style.css?v=20261107-1055">
+  <link rel="stylesheet" href="style.css?v=20261107-1125">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -364,6 +364,91 @@
 
     .bot-input-form button:hover {
       transform: scale(1.08) !important;
+    }
+
+    /* Settings Panel */
+    .bot-settings-panel {
+      position: absolute !important;
+      top: 60px !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: #0f172a !important;
+      border-bottom: 2px solid #818cf8 !important;
+      padding: 1.1rem !important;
+      z-index: 50 !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+      animation: slideDown 0.25s ease !important;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .settings-panel-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .settings-panel-header h4 {
+      font-size: 0.95rem !important;
+      font-weight: 700 !important;
+      color: #f8fafc !important;
+      margin: 0 !important;
+    }
+
+    .btn-icon-sm {
+      background: none !important;
+      border: none !important;
+      color: #94a3b8 !important;
+      font-size: 1.2rem !important;
+      cursor: pointer !important;
+      line-height: 1 !important;
+    }
+
+    .settings-desc {
+      font-size: 0.78rem !important;
+      color: #94a3b8 !important;
+      line-height: 1.5 !important;
+      margin-bottom: 0.85rem !important;
+    }
+
+    .settings-input-group {
+      margin-bottom: 0.75rem !important;
+    }
+
+    .settings-input-group input {
+      width: 100% !important;
+      background: rgba(30, 41, 59, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 8px !important;
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.82rem !important;
+      color: #ffffff !important;
+      outline: none !important;
+      box-sizing: border-box !important;
+    }
+
+    .settings-input-group input:focus {
+      border-color: #818cf8 !important;
+    }
+
+    .settings-status-box {
+      font-size: 0.75rem !important;
+      padding: 0.45rem 0.75rem !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-radius: 6px !important;
+      color: #cbd5e1 !important;
+      margin-bottom: 0.85rem !important;
+      line-height: 1.4 !important;
+      word-break: break-all !important;
+    }
+
+    .settings-actions {
+      display: flex !important;
+      gap: 0.5rem !important;
     }
   </style>
 </head>
@@ -727,8 +812,28 @@
           </div>
         </div>
         <div class="bot-header-actions">
+          <button class="bot-btn-icon" id="bot-settings-toggle" title="設定 GAS 雲端大腦網址">⚙️</button>
           <button class="bot-btn-icon" id="bot-clear" title="清空對話">🗑️</button>
           <button class="bot-btn-icon" id="bot-close" title="收合視窗">✕</button>
+        </div>
+      </div>
+
+      <!-- 吉寶雲端大腦設定面板 (可直接貼上 GAS 網址) -->
+      <div class="bot-settings-panel" id="bot-settings-panel" style="display: none;">
+        <div class="settings-panel-header">
+          <h4>⚙️ 吉寶雲端 LLM 大腦設定</h4>
+          <button class="btn-icon-sm" id="close-settings-panel">&times;</button>
+        </div>
+        <p class="settings-desc">貼上您部署好的 Google Apps Script Web App 網址，吉寶將立即連線至 OpenRouter Claude Haiku 5.5 大腦進行對話！</p>
+        <div class="settings-input-group">
+          <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+        </div>
+        <div class="settings-status-box" id="gas-status-msg">
+          狀態：尚未設定雲端網址（目前使用本機備援問答）
+        </div>
+        <div class="settings-actions">
+          <button class="btn btn-sm btn-primary" id="btn-save-gas">儲存並測試連線 🚀</button>
+          <button class="btn btn-sm btn-outline" id="btn-clear-gas">清除</button>
         </div>
       </div>
 
@@ -759,6 +864,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20261107-1055"></script>
+  <script src="app.js?v=20261107-1125"></script>
 </body>
 </html>
