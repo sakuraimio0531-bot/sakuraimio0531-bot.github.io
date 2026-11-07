@@ -702,69 +702,94 @@ function initChihuahuaBot() {
   }
 
   // --------------------------------------------------
-  // 吉寶雲端大腦設定面板邏輯 (讓使用者隨時可貼上 GAS 網址)
+  // 吉寶雲端大腦設定 (支援置中專用大視窗、懸浮按鈕與橫幅)
   // --------------------------------------------------
+  const floatingGasBtn = document.getElementById('floating-gas-btn');
+  const bannerGasBtn = document.getElementById('banner-gas-btn');
   const settingsToggle = document.getElementById('bot-settings-toggle');
-  const settingsPanel = document.getElementById('bot-settings-panel');
-  const closeSettings = document.getElementById('close-settings-panel');
-  const gasInput = document.getElementById('gas-url-input');
-  const gasStatus = document.getElementById('gas-status-msg');
-  const btnSaveGas = document.getElementById('btn-save-gas');
-  const btnClearGas = document.getElementById('btn-clear-gas');
+  
+  const gasModal = document.getElementById('gas-modal');
+  const gasModalBackdrop = document.getElementById('gas-modal-backdrop');
+  const gasModalClose = document.getElementById('gas-modal-close');
+  const gasModalInput = document.getElementById('gas-modal-input');
+  const gasModalStatus = document.getElementById('gas-modal-status');
+  const gasModalSave = document.getElementById('gas-modal-save');
+  const gasModalClear = document.getElementById('gas-modal-clear');
+
   const botBadge = document.querySelector('.bot-badge');
   const botStatus = document.querySelector('.bot-status');
 
+  function openGasModal() {
+    if (!gasModal) return;
+    gasModal.style.display = 'flex';
+    const currentUrl = getActiveGasUrl();
+    if (gasModalInput) {
+      gasModalInput.value = currentUrl;
+      setTimeout(() => gasModalInput.focus(), 100);
+    }
+    updateGasUIState();
+  }
+
+  function closeGasModal() {
+    if (gasModal) gasModal.style.display = 'none';
+  }
+
   function updateGasUIState() {
     const savedUrl = getActiveGasUrl();
-    if (gasInput) gasInput.value = savedUrl;
+    if (gasModalInput && !gasModalInput.value) gasModalInput.value = savedUrl;
+    
     if (savedUrl) {
-      if (gasStatus) {
-        gasStatus.innerHTML = `✅ 已連接雲端大腦：<br><span style="color:#38bdf8;font-size:0.72rem;">${savedUrl}</span>`;
+      if (gasModalStatus) {
+        gasModalStatus.innerHTML = `✅ <b style="color:#38bdf8;">已成功連線至 Google 雲端！</b><br><span style="font-size:0.8rem;color:#cbd5e1;">網址：${savedUrl}</span>`;
       }
       if (botBadge) botBadge.textContent = 'LLM 大腦 🧠';
       if (botStatus) botStatus.innerHTML = '<span class="status-pulse"></span>已連線 Claude Haiku 5.5';
+      if (bannerGasBtn) {
+        bannerGasBtn.innerHTML = '<span>🧠 已連線 Claude Haiku 5.5 雲端大腦 (點擊變更)</span><span>⚙️</span>';
+      }
+      if (floatingGasBtn) {
+        floatingGasBtn.innerHTML = '🧠 已連線 LLM 大腦 (點擊修改)';
+        floatingGasBtn.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
+      }
     } else {
-      if (gasStatus) {
-        gasStatus.innerHTML = '狀態：尚未設定雲端網址（目前使用本機備援問答）';
+      if (gasModalStatus) {
+        gasModalStatus.innerHTML = '目前狀態：尚未設定雲端網址（目前使用本機問答模式）';
       }
       if (botBadge) botBadge.textContent = '吉度專業';
       if (botStatus) botStatus.innerHTML = '<span class="status-pulse"></span>在線中・本機模式';
+      if (bannerGasBtn) {
+        bannerGasBtn.innerHTML = '<span>⚙️ 點此貼上 Google Apps Script 網址 (啟用 LLM)</span><span>👉</span>';
+      }
+      if (floatingGasBtn) {
+        floatingGasBtn.innerHTML = '⚙️ 設定 GAS 網址';
+        floatingGasBtn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)';
+      }
     }
   }
   updateGasUIState();
 
-  if (settingsToggle) {
-    settingsToggle.addEventListener('click', () => {
-      if (settingsPanel) {
-        const isHidden = settingsPanel.style.display === 'none';
-        settingsPanel.style.display = isHidden ? 'block' : 'none';
-        if (isHidden && gasInput) {
-          gasInput.value = getActiveGasUrl();
-          gasInput.focus();
-        }
-      }
-    });
-  }
+  // 綁定開啟設定視窗事件
+  if (floatingGasBtn) floatingGasBtn.addEventListener('click', openGasModal);
+  if (bannerGasBtn) bannerGasBtn.addEventListener('click', openGasModal);
+  if (settingsToggle) settingsToggle.addEventListener('click', openGasModal);
 
-  if (closeSettings) {
-    closeSettings.addEventListener('click', () => {
-      if (settingsPanel) settingsPanel.style.display = 'none';
-    });
-  }
+  // 綁定關閉設定視窗事件
+  if (gasModalClose) gasModalClose.addEventListener('click', closeGasModal);
+  if (gasModalBackdrop) gasModalBackdrop.addEventListener('click', closeGasModal);
 
-  if (btnSaveGas) {
-    btnSaveGas.addEventListener('click', async () => {
-      const url = gasInput.value.trim();
+  // 儲存並測試連線
+  if (gasModalSave) {
+    gasModalSave.addEventListener('click', async () => {
+      const url = gasModalInput ? gasModalInput.value.trim() : '';
       if (!url) {
-        alert('請輸入 Google Apps Script 網址！');
+        alert('請先輸入 Google Apps Script 網址！');
         return;
       }
 
-      btnSaveGas.textContent = '測試連線中... ⏳';
-      btnSaveGas.disabled = true;
+      gasModalSave.textContent = '測試連線中... ⏳';
+      gasModalSave.disabled = true;
 
       try {
-        // 發送 GET 測試
         const res = await fetch(url);
         const data = await res.json();
         localStorage.setItem('nexus_gas_url', url);
@@ -772,30 +797,30 @@ function initChihuahuaBot() {
         showToast('🎉 連線成功！已啟用 Claude Haiku 5.5 大腦！');
         appendMessage('bot', '汪汪！太棒了！已成功連線至 Google 雲端！吉寶現在可以使用 OpenRouter Claude Haiku 5.5 大腦即時回答你的任何問題囉！🍖✨');
         playPuppyBark();
-        if (settingsPanel) settingsPanel.style.display = 'none';
+        closeGasModal();
       } catch (err) {
         console.warn('GAS Ping note:', err);
-        // 儲存網址
         localStorage.setItem('nexus_gas_url', url);
         updateGasUIState();
-        showToast('✔️ 網址已儲存！將於發送問題時連線！');
+        showToast('✔️ 網址已儲存！將於發問時連線。');
         appendMessage('bot', '汪！雲端網址已設定完成！快向吉寶提問試試看吧！🐶');
         playPuppyBark();
-        if (settingsPanel) settingsPanel.style.display = 'none';
+        closeGasModal();
       } finally {
-        btnSaveGas.textContent = '儲存並測試連線 🚀';
-        btnSaveGas.disabled = false;
+        gasModalSave.textContent = '儲存並啟用 Claude Haiku 5.5 🚀';
+        gasModalSave.disabled = false;
       }
     });
   }
 
-  if (btnClearGas) {
-    btnClearGas.addEventListener('click', () => {
+  // 清除設定
+  if (gasModalClear) {
+    gasModalClear.addEventListener('click', () => {
       localStorage.removeItem('nexus_gas_url');
-      if (gasInput) gasInput.value = '';
+      if (gasModalInput) gasModalInput.value = '';
       updateGasUIState();
-      showToast('已清除雲端網址，切換回本機問答模式');
-      if (settingsPanel) settingsPanel.style.display = 'none';
+      showToast('已清除雲端網址，切換回本機模式');
+      closeGasModal();
     });
   }
 
