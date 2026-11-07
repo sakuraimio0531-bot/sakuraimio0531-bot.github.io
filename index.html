@@ -4,10 +4,368 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nexus Hub | 個人創意與數位作品集</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261107-1055">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================================
+       吉娃娃智能客服專用獨立樣式 (防瀏覽器快取遮擋)
+       ============================================== */
+    .chihuahua-bot-wrapper {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-end !important;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif !important;
+    }
+
+    .bot-bubble {
+      position: absolute !important;
+      bottom: 80px !important;
+      right: 0 !important;
+      background: #1e293b !important;
+      border: 1.5px solid #818cf8 !important;
+      padding: 0.65rem 1rem !important;
+      border-radius: 12px !important;
+      font-size: 0.88rem !important;
+      color: #f8fafc !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+      white-space: nowrap !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.6rem !important;
+      animation: chihuahua-float 3s ease-in-out infinite !important;
+      pointer-events: auto !important;
+    }
+
+    .bot-bubble::after {
+      content: '' !important;
+      position: absolute !important;
+      bottom: -6px !important;
+      right: 28px !important;
+      width: 10px !important;
+      height: 10px !important;
+      background: #1e293b !important;
+      border-right: 1.5px solid #818cf8 !important;
+      border-bottom: 1.5px solid #818cf8 !important;
+      transform: rotate(45deg) !important;
+    }
+
+    @keyframes chihuahua-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .bubble-close {
+      background: none !important;
+      border: none !important;
+      color: #94a3b8 !important;
+      font-size: 1.2rem !important;
+      cursor: pointer !important;
+      line-height: 1 !important;
+      padding: 0 4px !important;
+    }
+
+    .bubble-close:hover {
+      color: #f43f5e !important;
+    }
+
+    .bot-launcher {
+      width: 68px !important;
+      height: 68px !important;
+      border-radius: 50% !important;
+      background: #0f172a !important;
+      border: 3px solid #818cf8 !important;
+      box-shadow: 0 10px 30px rgba(129, 140, 248, 0.6) !important;
+      cursor: pointer !important;
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    .bot-launcher:hover {
+      transform: scale(1.1) !important;
+      animation: chihuahua-tremble 0.3s infinite alternate !important;
+    }
+
+    @keyframes chihuahua-tremble {
+      0% { transform: scale(1.1) rotate(-3deg); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+
+    .launcher-avatar {
+      width: 56px !important;
+      height: 56px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .online-indicator {
+      position: absolute !important;
+      bottom: 2px !important;
+      right: 2px !important;
+      width: 16px !important;
+      height: 16px !important;
+      background: #10b981 !important;
+      border: 3px solid #0f172a !important;
+      border-radius: 50% !important;
+      box-shadow: 0 0 10px #10b981 !important;
+    }
+
+    .bot-window {
+      position: absolute !important;
+      bottom: 84px !important;
+      right: 0 !important;
+      width: 375px !important;
+      max-width: calc(100vw - 32px) !important;
+      height: 530px !important;
+      max-height: calc(100vh - 120px) !important;
+      background: #111827 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(20px) scale(0.95) !important;
+      transform-origin: bottom right !important;
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    .bot-window.active {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: translateY(0) scale(1) !important;
+    }
+
+    .bot-header {
+      padding: 0.9rem 1.1rem !important;
+      background: #1e293b !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+
+    .bot-profile {
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.75rem !important;
+    }
+
+    .bot-header-avatar {
+      width: 42px !important;
+      height: 42px !important;
+      border-radius: 50% !important;
+      background: rgba(217, 155, 97, 0.2) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 1px solid #818cf8 !important;
+      overflow: hidden !important;
+    }
+
+    .bot-name {
+      font-weight: 700 !important;
+      font-size: 0.95rem !important;
+      color: #f8fafc !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.4rem !important;
+    }
+
+    .bot-badge {
+      font-size: 0.7rem !important;
+      padding: 0.15rem 0.45rem !important;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+      color: #fff !important;
+      border-radius: 6px !important;
+      font-weight: 600 !important;
+    }
+
+    .bot-status {
+      font-size: 0.75rem !important;
+      color: #94a3b8 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.35rem !important;
+      margin-top: 1px !important;
+    }
+
+    .status-pulse {
+      width: 7px !important;
+      height: 7px !important;
+      background: #10b981 !important;
+      border-radius: 50% !important;
+      box-shadow: 0 0 6px #10b981 !important;
+    }
+
+    .bot-header-actions {
+      display: flex !important;
+      gap: 0.35rem !important;
+    }
+
+    .bot-btn-icon {
+      background: none !important;
+      border: none !important;
+      color: #94a3b8 !important;
+      font-size: 1rem !important;
+      cursor: pointer !important;
+      padding: 0.35rem !important;
+      border-radius: 6px !important;
+      transition: all 0.2s !important;
+    }
+
+    .bot-btn-icon:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .bot-chips-bar {
+      display: flex !important;
+      gap: 0.45rem !important;
+      padding: 0.65rem 0.9rem !important;
+      overflow-x: auto !important;
+      white-space: nowrap !important;
+      background: rgba(0, 0, 0, 0.25) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      scrollbar-width: none !important;
+    }
+
+    .bot-chips-bar::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      color: #cbd5e1 !important;
+      font-size: 0.78rem !important;
+      padding: 0.35rem 0.75rem !important;
+      border-radius: 9999px !important;
+      cursor: pointer !important;
+      transition: all 0.2s !important;
+      flex-shrink: 0 !important;
+    }
+
+    .chip:hover {
+      background: #818cf8 !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+    }
+
+    .bot-chat-body {
+      flex: 1 !important;
+      padding: 1rem !important;
+      overflow-y: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0.85rem !important;
+      background: #0b1120 !important;
+    }
+
+    .msg-row {
+      display: flex !important;
+      gap: 0.65rem !important;
+      max-width: 88% !important;
+      animation: msgFadeIn 0.25s ease forwards !important;
+    }
+
+    .msg-row.bot {
+      align-self: flex-start !important;
+    }
+
+    .msg-row.user {
+      align-self: flex-end !important;
+      flex-direction: row-reverse !important;
+    }
+
+    .msg-mini-avatar {
+      width: 30px !important;
+      height: 30px !important;
+      flex-shrink: 0 !important;
+      border-radius: 50% !important;
+      overflow: hidden !important;
+      background: rgba(217, 155, 97, 0.2) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .msg-bubble {
+      padding: 0.65rem 0.95rem !important;
+      border-radius: 14px !important;
+      font-size: 0.88rem !important;
+      line-height: 1.55 !important;
+      word-break: break-word !important;
+    }
+
+    .msg-row.bot .msg-bubble {
+      background: #1e293b !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-top-left-radius: 4px !important;
+    }
+
+    .msg-row.user .msg-bubble {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+      color: #ffffff !important;
+      border-top-right-radius: 4px !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35) !important;
+    }
+
+    .bot-input-form {
+      padding: 0.75rem 0.9rem !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+      background: #1e293b !important;
+      display: flex !important;
+      gap: 0.5rem !important;
+    }
+
+    .bot-input-form input {
+      flex: 1 !important;
+      background: rgba(15, 23, 42, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 9999px !important;
+      padding: 0.55rem 1rem !important;
+      font-size: 0.88rem !important;
+      color: #ffffff !important;
+      outline: none !important;
+    }
+
+    .bot-input-form input:focus {
+      border-color: #818cf8 !important;
+    }
+
+    .bot-input-form button {
+      width: 40px !important;
+      height: 40px !important;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%) !important;
+      border: none !important;
+      border-radius: 50% !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      flex-shrink: 0 !important;
+      transition: transform 0.2s !important;
+    }
+
+    .bot-input-form button:hover {
+      transform: scale(1.08) !important;
+    }
+  </style>
 </head>
 <body data-theme="dark">
   <!-- 背景粒子畫布 -->
@@ -302,7 +660,7 @@
     <!-- 懸浮圓形按鈕 -->
     <button class="bot-launcher" id="bot-launcher" aria-label="打開吉娃娃智能客服" title="點擊與吉娃娃客服交談">
       <div class="launcher-avatar">
-        <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg">
+        <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg" style="width: 100%; height: 100%; display: block;">
           <!-- Ears -->
           <polygon points="18,48 5,6 40,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
           <polygon points="20,44 11,14 36,28" fill="#F8B88B"/>
@@ -340,7 +698,7 @@
       <div class="bot-header">
         <div class="bot-profile">
           <div class="bot-header-avatar">
-            <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg">
+            <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg" style="width: 100%; height: 100%; display: block;">
               <polygon points="18,48 5,6 40,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
               <polygon points="20,44 11,14 36,28" fill="#F8B88B"/>
               <polygon points="82,48 95,6 60,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
@@ -401,6 +759,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20261107-1055"></script>
 </body>
 </html>
