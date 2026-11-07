@@ -3,9 +3,13 @@
  */
 
 // Google Apps Script 後端 Web App URL
-// 當您完成 Google Apps Script 部署後，將取得的網址貼在下方引號中
-// 例如：const GAS_API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
-const GAS_API_URL = "";
+// 當您完成 Google Apps Script 部署後，也可以直接在網頁右下角吉娃娃視窗中點擊 ⚙️ 貼上
+let GAS_API_URL = "";
+
+// 取得當前生效的 GAS 網址（優先讀取訪客在瀏覽器設定的網址）
+function getActiveGasUrl() {
+  return localStorage.getItem('nexus_gas_url') || GAS_API_URL || '';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initTypewriter();
@@ -444,9 +448,10 @@ function initContactForm() {
     showToast(`正在發送留言至雲端後端...`);
 
     // 若已設定 Google Apps Script 後端
-    if (GAS_API_URL) {
+    const activeUrl = getActiveGasUrl();
+    if (activeUrl) {
       try {
-        await fetch(GAS_API_URL, {
+        await fetch(activeUrl, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
@@ -667,9 +672,10 @@ function initChihuahuaBot() {
     showTyping();
 
     // 若已設定 Google Apps Script 後端，優先向雲端後端請求
-    if (GAS_API_URL) {
+    const activeUrl = getActiveGasUrl();
+    if (activeUrl) {
       try {
-        const response = await fetch(GAS_API_URL, {
+        const response = await fetch(activeUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'chat', message: query })
@@ -693,6 +699,104 @@ function initChihuahuaBot() {
       appendMessage('bot', reply);
       playPuppyBark();
     }, 550);
+  }
+
+  // --------------------------------------------------
+  // 吉寶雲端大腦設定面板邏輯 (讓使用者隨時可貼上 GAS 網址)
+  // --------------------------------------------------
+  const settingsToggle = document.getElementById('bot-settings-toggle');
+  const settingsPanel = document.getElementById('bot-settings-panel');
+  const closeSettings = document.getElementById('close-settings-panel');
+  const gasInput = document.getElementById('gas-url-input');
+  const gasStatus = document.getElementById('gas-status-msg');
+  const btnSaveGas = document.getElementById('btn-save-gas');
+  const btnClearGas = document.getElementById('btn-clear-gas');
+  const botBadge = document.querySelector('.bot-badge');
+  const botStatus = document.querySelector('.bot-status');
+
+  function updateGasUIState() {
+    const savedUrl = getActiveGasUrl();
+    if (gasInput) gasInput.value = savedUrl;
+    if (savedUrl) {
+      if (gasStatus) {
+        gasStatus.innerHTML = `✅ 已連接雲端大腦：<br><span style="color:#38bdf8;font-size:0.72rem;">${savedUrl}</span>`;
+      }
+      if (botBadge) botBadge.textContent = 'LLM 大腦 🧠';
+      if (botStatus) botStatus.innerHTML = '<span class="status-pulse"></span>已連線 Claude Haiku 5.5';
+    } else {
+      if (gasStatus) {
+        gasStatus.innerHTML = '狀態：尚未設定雲端網址（目前使用本機備援問答）';
+      }
+      if (botBadge) botBadge.textContent = '吉度專業';
+      if (botStatus) botStatus.innerHTML = '<span class="status-pulse"></span>在線中・本機模式';
+    }
+  }
+  updateGasUIState();
+
+  if (settingsToggle) {
+    settingsToggle.addEventListener('click', () => {
+      if (settingsPanel) {
+        const isHidden = settingsPanel.style.display === 'none';
+        settingsPanel.style.display = isHidden ? 'block' : 'none';
+        if (isHidden && gasInput) {
+          gasInput.value = getActiveGasUrl();
+          gasInput.focus();
+        }
+      }
+    });
+  }
+
+  if (closeSettings) {
+    closeSettings.addEventListener('click', () => {
+      if (settingsPanel) settingsPanel.style.display = 'none';
+    });
+  }
+
+  if (btnSaveGas) {
+    btnSaveGas.addEventListener('click', async () => {
+      const url = gasInput.value.trim();
+      if (!url) {
+        alert('請輸入 Google Apps Script 網址！');
+        return;
+      }
+
+      btnSaveGas.textContent = '測試連線中... ⏳';
+      btnSaveGas.disabled = true;
+
+      try {
+        // 發送 GET 測試
+        const res = await fetch(url);
+        const data = await res.json();
+        localStorage.setItem('nexus_gas_url', url);
+        updateGasUIState();
+        showToast('🎉 連線成功！已啟用 Claude Haiku 5.5 大腦！');
+        appendMessage('bot', '汪汪！太棒了！已成功連線至 Google 雲端！吉寶現在可以使用 OpenRouter Claude Haiku 5.5 大腦即時回答你的任何問題囉！🍖✨');
+        playPuppyBark();
+        if (settingsPanel) settingsPanel.style.display = 'none';
+      } catch (err) {
+        console.warn('GAS Ping note:', err);
+        // 儲存網址
+        localStorage.setItem('nexus_gas_url', url);
+        updateGasUIState();
+        showToast('✔️ 網址已儲存！將於發送問題時連線！');
+        appendMessage('bot', '汪！雲端網址已設定完成！快向吉寶提問試試看吧！🐶');
+        playPuppyBark();
+        if (settingsPanel) settingsPanel.style.display = 'none';
+      } finally {
+        btnSaveGas.textContent = '儲存並測試連線 🚀';
+        btnSaveGas.disabled = false;
+      }
+    });
+  }
+
+  if (btnClearGas) {
+    btnClearGas.addEventListener('click', () => {
+      localStorage.removeItem('nexus_gas_url');
+      if (gasInput) gasInput.value = '';
+      updateGasUIState();
+      showToast('已清除雲端網址，切換回本機問答模式');
+      if (settingsPanel) settingsPanel.style.display = 'none';
+    });
   }
 
   // 事件綁定
