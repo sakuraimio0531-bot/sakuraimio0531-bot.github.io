@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initQuotes();
   initQuickNotes();
   initContactForm();
+  initChihuahuaBot();
 });
 
 /* ----------------------------------------------------
@@ -448,4 +449,238 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 2800);
+}
+
+/* ----------------------------------------------------
+   12. 吉娃娃智能客服 (Chihuahua AI Bot)
+   ---------------------------------------------------- */
+function initChihuahuaBot() {
+  const launcher = document.getElementById('bot-launcher');
+  const windowEl = document.getElementById('bot-window');
+  const closeBtn = document.getElementById('bot-close');
+  const clearBtn = document.getElementById('bot-clear');
+  const bubble = document.getElementById('bot-bubble');
+  const bubbleClose = document.getElementById('bubble-close');
+  const form = document.getElementById('bot-form');
+  const input = document.getElementById('bot-input');
+  const chatBody = document.getElementById('bot-chat-body');
+  const chips = document.querySelectorAll('.chip');
+
+  if (!launcher || !windowEl) return;
+
+  // 迷你吉娃娃 SVG 圖示
+  const miniChihuahuaSvg = `
+    <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg">
+      <polygon points="18,48 5,6 40,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5"/>
+      <polygon points="20,44 11,14 36,28" fill="#F8B88B"/>
+      <polygon points="82,48 95,6 60,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5"/>
+      <polygon points="80,44 89,14 64,28" fill="#F8B88B"/>
+      <circle cx="50" cy="54" r="34" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5"/>
+      <circle cx="30" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+      <circle cx="70" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+      <ellipse cx="36" cy="52" rx="9" ry="11" fill="#1C1917"/>
+      <circle cx="33" cy="48" r="3" fill="#FFFFFF"/>
+      <ellipse cx="64" cy="52" rx="9" ry="11" fill="#1C1917"/>
+      <circle cx="61" cy="48" r="3" fill="#FFFFFF"/>
+      <ellipse cx="50" cy="67" rx="13" ry="9" fill="#FFF3E8"/>
+      <ellipse cx="50" cy="63" rx="4.5" ry="3" fill="#24140E"/>
+      <path d="M46 66 Q50 69 54 66" stroke="#24140E" stroke-width="2" fill="none"/>
+      <path d="M48 68 Q50 73 52 68 Z" fill="#FF6B8B"/>
+    </svg>
+  `;
+
+  // 播放吉娃娃輕快的叫聲 / 訊息提示音
+  function playPuppyBark() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      // 高音小狗短吠頻率曲線
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.06);
+      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    } catch (e) {
+      // AudioContext fallback
+    }
+  }
+
+  // 加入訊息至對話視窗
+  function appendMessage(sender, text) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${sender}`;
+
+    if (sender === 'bot') {
+      const avatar = document.createElement('div');
+      avatar.className = 'msg-mini-avatar';
+      avatar.innerHTML = miniChihuahuaSvg;
+      row.appendChild(avatar);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = text;
+    row.appendChild(bubble);
+
+    chatBody.appendChild(row);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  // 顯示打字中動畫
+  function showTyping() {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot typing-row';
+    row.id = 'bot-typing';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-mini-avatar';
+    avatar.innerHTML = miniChihuahuaSvg;
+    row.appendChild(avatar);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = `
+      <div class="typing-dots">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    `;
+    row.appendChild(bubble);
+    chatBody.appendChild(row);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('bot-typing');
+    if (el) el.remove();
+  }
+
+  // 預設歡迎詞
+  function initWelcomeMessage() {
+    chatBody.innerHTML = '';
+    appendMessage(
+      'bot',
+      '汪汪！我是駐站智能吉祥物兼首席客服【吉寶】🐶！<br>別看我體型小還一直在發抖，我腦子裡裝滿了網站指引！請問有什麼我可以協助您的？汪！'
+    );
+  }
+  initWelcomeMessage();
+
+  // 智能知識庫回應邏輯
+  function generateReply(q) {
+    const query = q.toLowerCase().trim();
+
+    if (/你是誰|叫什麼|名字|介紹你|身份|自我介紹/.test(query)) {
+      return '汪汪！我是吉寶，這座 Nexus Hub 的守護吉娃娃！我的職責是替作者 sakuraimio0531 招待每一位尊貴的訪客！我有高達 100% 的熱情度喔！';
+    }
+
+    if (/網站|幹嘛|介紹|內容|功能|有什麼/.test(query)) {
+      return '這座網站是 sakuraimio0531 的個人數位空間！特色包括：<br>✦ 現代毛玻璃美學與星空粒子畫布<br>✦ 25 分鐘專注番茄鐘<br>✦ 每日靈感金句產生器<br>✦ 快速心流隨手便箋<br>✦ 還有最可愛的我！汪！';
+    }
+
+    if (/番茄鐘|專注|計時|timer|pomodoro/.test(query)) {
+      return '滑到網頁的「即時互動實驗室」區塊，點擊「開始專注」按鈕即可啟動 25 分鐘倒數！時間到了會播放提示音提醒你休息，保護眼睛！汪！';
+    }
+
+    if (/聯絡|作者|信箱|email|github|聯絡方式|找誰|聯絡作者/.test(query)) {
+      return '你可以透過以下方式找到作者唷：<br>📫 <b>Email:</b> sakuraimio0531@gmail.com<br>🐙 <b>GitHub:</b> @sakuraimio0531-bot<br>或者直接在網頁下方的聯絡表單留言，我們會第一時間收到！汪！';
+    }
+
+    if (/發抖|抖|冷|害怕|為什麼發抖/.test(query)) {
+      return '（持續劇烈發抖）汪！本吉娃娃發抖才不是因為冷或害怕！這是體內強大的高頻 CPU 運算超頻產生的微震動！懂不懂高端 AI 科技的浪漫啊汪！😤';
+    }
+
+    if (/骨頭|肉|吃|餓|食物|點心|飼料/.test(query)) {
+      return '（雙眼發光，尾巴搖成螺旋槳）🍖 汪嗚！肉骨頭！太香了吧！謝謝大善人！吉寶體力值與運算速度直接 +9999！現在能回答你 100 個問題！';
+    }
+
+    if (/好可愛|可愛|摸摸|乖|萌/.test(query)) {
+      return '（害羞地原地轉了三圈）汪汪！被誇獎了！吉度害羞！你人真好，吉寶認證你為本站的終身榮譽 VIP！✨🐶';
+    }
+
+    if (/你好|哈囉|嗨|hi|hello|安安|早安|午安|晚安/.test(query)) {
+      return '汪！你好你好！吉寶熱烈歡迎你！今天想探索網站的哪個酷炫功能呢？可以直接點擊上方的快捷按鈕問我唷！';
+    }
+
+    if (/再見|掰掰|bye|先走|下線/.test(query)) {
+      return '汪嗚...要走了嗎？吉寶會想你的！隨時點擊右下角，我一直都在這裡守護著網站！祝你有美好的一天，掰掰汪！👋';
+    }
+
+    if (/謝謝|感謝|thx|thank/.test(query)) {
+      return '不客氣汪！能為您服務是吉寶的榮幸！有任何需要隨時召喚我！🐶✨';
+    }
+
+    // 預設聰明回答
+    const fallbacks = [
+      '汪汪！這個問題太深奧了，吉娃娃的大腦正在以 5000 RPM 瘋狂運轉... 您可以點擊上方的快捷標籤，或是詢問我關於「網站功能」、「番茄鐘」或「作者聯絡方式」唷！',
+      '（歪頭睜大眼睛盯著你看）汪？這個吉寶還在努力學習中！要不要試試問我「你是誰」或「為什麼一直發抖」？汪！',
+      '汪嗚！雖然我是吉娃娃，但我懂的可不少！您可以詢問作者的 GitHub、如何使用小工具，或是給我一根肉骨頭！🍖'
+    ];
+    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  }
+
+  // 處理使用者送出問題
+  function handleUserQuery(query) {
+    if (!query) return;
+    appendMessage('user', query);
+    input.value = '';
+
+    showTyping();
+
+    // 模擬思考延遲 400ms ~ 700ms
+    setTimeout(() => {
+      removeTyping();
+      const reply = generateReply(query);
+      appendMessage('bot', reply);
+      playPuppyBark();
+    }, 550);
+  }
+
+  // 事件綁定
+  launcher.addEventListener('click', () => {
+    windowEl.classList.toggle('active');
+    if (bubble) bubble.style.display = 'none';
+    if (windowEl.classList.contains('active')) {
+      input.focus();
+      playPuppyBark();
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    windowEl.classList.remove('active');
+  });
+
+  if (bubbleClose) {
+    bubbleClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      bubble.style.display = 'none';
+    });
+  }
+
+  clearBtn.addEventListener('click', () => {
+    initWelcomeMessage();
+    showToast('吉娃娃對話紀錄已清空 🐶');
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const query = input.value.trim();
+    if (query) handleUserQuery(query);
+  });
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const q = chip.getAttribute('data-query');
+      handleUserQuery(q);
+    });
+  });
 }
