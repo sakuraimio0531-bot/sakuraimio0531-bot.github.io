@@ -291,6 +291,116 @@
   <!-- 浮動提示 Toast -->
   <div class="toast" id="toast">訊息通知</div>
 
+  <!-- 吉娃娃智能客服 Floating Chatbot -->
+  <div class="chihuahua-bot-wrapper" id="chihuahua-bot">
+    <!-- 提示對話泡泡 -->
+    <div class="bot-bubble" id="bot-bubble">
+      <span>汪！我是智能客服吉寶 🐶 有問題隨時問我！</span>
+      <button class="bubble-close" id="bubble-close" title="關閉提示">&times;</button>
+    </div>
+
+    <!-- 懸浮圓形按鈕 -->
+    <button class="bot-launcher" id="bot-launcher" aria-label="打開吉娃娃智能客服" title="點擊與吉娃娃客服交談">
+      <div class="launcher-avatar">
+        <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg">
+          <!-- Ears -->
+          <polygon points="18,48 5,6 40,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
+          <polygon points="20,44 11,14 36,28" fill="#F8B88B"/>
+          <polygon points="82,48 95,6 60,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
+          <polygon points="80,44 89,14 64,28" fill="#F8B88B"/>
+          <!-- Head -->
+          <circle cx="50" cy="54" r="34" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5"/>
+          <ellipse cx="50" cy="46" rx="22" ry="14" fill="#E8B07D"/>
+          <!-- Cheeks -->
+          <circle cx="30" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+          <circle cx="70" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+          <!-- Shiny Eyes -->
+          <ellipse cx="36" cy="52" rx="9" ry="11" fill="#1C1917"/>
+          <circle cx="33" cy="48" r="3.5" fill="#FFFFFF"/>
+          <circle cx="38" cy="54" r="1.5" fill="#FFFFFF"/>
+          <ellipse cx="64" cy="52" rx="9" ry="11" fill="#1C1917"/>
+          <circle cx="61" cy="48" r="3.5" fill="#FFFFFF"/>
+          <circle cx="66" cy="54" r="1.5" fill="#FFFFFF"/>
+          <!-- Eyebrows -->
+          <ellipse cx="34" cy="38" rx="3.5" ry="2" fill="#995D28"/>
+          <ellipse cx="66" cy="38" rx="3.5" ry="2" fill="#995D28"/>
+          <!-- Snout -->
+          <ellipse cx="50" cy="67" rx="13" ry="9" fill="#FFF3E8"/>
+          <ellipse cx="50" cy="63" rx="4.5" ry="3" fill="#24140E"/>
+          <path d="M46 66 Q50 69 54 66" stroke="#24140E" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M48 68 Q50 73 52 68 Z" fill="#FF6B8B"/>
+        </svg>
+      </div>
+      <span class="online-indicator"></span>
+    </button>
+
+    <!-- 聊天視窗 -->
+    <div class="bot-window" id="bot-window">
+      <!-- 視窗頂部 -->
+      <div class="bot-header">
+        <div class="bot-profile">
+          <div class="bot-header-avatar">
+            <svg viewBox="0 0 100 100" class="chihuahua-avatar-svg">
+              <polygon points="18,48 5,6 40,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
+              <polygon points="20,44 11,14 36,28" fill="#F8B88B"/>
+              <polygon points="82,48 95,6 60,26" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5" stroke-linejoin="round"/>
+              <polygon points="80,44 89,14 64,28" fill="#F8B88B"/>
+              <circle cx="50" cy="54" r="34" fill="#D99B61" stroke="#7A4B1F" stroke-width="2.5"/>
+              <ellipse cx="50" cy="46" rx="22" ry="14" fill="#E8B07D"/>
+              <circle cx="30" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+              <circle cx="70" cy="62" r="5" fill="#FFAAA6" opacity="0.6"/>
+              <ellipse cx="36" cy="52" rx="9" ry="11" fill="#1C1917"/>
+              <circle cx="33" cy="48" r="3.5" fill="#FFFFFF"/>
+              <circle cx="38" cy="54" r="1.5" fill="#FFFFFF"/>
+              <ellipse cx="64" cy="52" rx="9" ry="11" fill="#1C1917"/>
+              <circle cx="61" cy="48" r="3.5" fill="#FFFFFF"/>
+              <circle cx="66" cy="54" r="1.5" fill="#FFFFFF"/>
+              <ellipse cx="34" cy="38" rx="3.5" ry="2" fill="#995D28"/>
+              <ellipse cx="66" cy="38" rx="3.5" ry="2" fill="#995D28"/>
+              <ellipse cx="50" cy="67" rx="13" ry="9" fill="#FFF3E8"/>
+              <ellipse cx="50" cy="63" rx="4.5" ry="3" fill="#24140E"/>
+              <path d="M46 66 Q50 69 54 66" stroke="#24140E" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M48 68 Q50 73 52 68 Z" fill="#FF6B8B"/>
+            </svg>
+          </div>
+          <div class="bot-header-info">
+            <div class="bot-name">吉寶 🐶 <span class="bot-badge">吉度專業</span></div>
+            <div class="bot-status"><span class="status-pulse"></span>在線中・隨時為您吠應</div>
+          </div>
+        </div>
+        <div class="bot-header-actions">
+          <button class="bot-btn-icon" id="bot-clear" title="清空對話">🗑️</button>
+          <button class="bot-btn-icon" id="bot-close" title="收合視窗">✕</button>
+        </div>
+      </div>
+
+      <!-- 快速提問 Chips -->
+      <div class="bot-chips-bar" id="bot-chips">
+        <button class="chip" data-query="你是誰？">🐾 你是誰？</button>
+        <button class="chip" data-query="這個網站在做什麼？">🚀 網站介紹</button>
+        <button class="chip" data-query="番茄鐘怎麼使用？">⏱️ 番茄鐘怎麼用？</button>
+        <button class="chip" data-query="如何聯絡網站作者？">📬 聯絡作者</button>
+        <button class="chip" data-query="吉娃娃為什麼一直發抖？">⚡ 為什麼一直發抖？</button>
+        <button class="chip" data-query="請給我一根肉骨頭！">🦴 給你肉骨頭</button>
+      </div>
+
+      <!-- 對話訊息列表 -->
+      <div class="bot-chat-body" id="bot-chat-body">
+        <!-- 訊息透過 JS 動態載入 -->
+      </div>
+
+      <!-- 輸入欄位 -->
+      <form class="bot-input-form" id="bot-form">
+        <input type="text" id="bot-input" placeholder="問吉娃娃任何問題..." autocomplete="off">
+        <button type="submit" id="bot-send-btn" title="發送訊息">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
