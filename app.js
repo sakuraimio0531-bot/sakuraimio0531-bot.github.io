@@ -2,6 +2,11 @@
  * Nexus Hub - Interactive Application Logic
  */
 
+// Google Apps Script 後端 Web App URL
+// 當您完成 Google Apps Script 部署後，將取得的網址貼在下方引號中
+// 例如：const GAS_API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+const GAS_API_URL = "";
+
 document.addEventListener('DOMContentLoaded', () => {
   initTypewriter();
   initThemeToggle();
@@ -424,17 +429,42 @@ function initQuickNotes() {
 }
 
 /* ----------------------------------------------------
-   10. 聯絡表單送出模擬 (Contact Form)
+   10. 聯絡表單送出 (整合 Google Apps Script 雲端寄信)
    ---------------------------------------------------- */
 function initContactForm() {
   const form = document.getElementById('contact-form');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value;
-    showToast(`感謝 ${name}！您的留言已成功送出 ✨`);
-    form.reset();
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
+
+    showToast(`正在發送留言至雲端後端...`);
+
+    // 若已設定 Google Apps Script 後端
+    if (GAS_API_URL) {
+      try {
+        await fetch(GAS_API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'contact', name, email, message })
+        });
+        showToast(`感謝 ${name}！您的留言已成功送達作者信箱 ✨`);
+        form.reset();
+        return;
+      } catch (err) {
+        console.warn('GAS Contact error:', err);
+      }
+    }
+
+    // 本機展示 fallback
+    setTimeout(() => {
+      showToast(`感謝 ${name}！您的留言已成功送出 ✨`);
+      form.reset();
+    }, 600);
   });
 }
 
@@ -628,15 +658,35 @@ function initChihuahuaBot() {
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
   }
 
-  // 處理使用者送出問題
-  function handleUserQuery(query) {
+  // 處理使用者送出問題 (支援 Google Apps Script 雲端 AI / 知識庫)
+  async function handleUserQuery(query) {
     if (!query) return;
     appendMessage('user', query);
     input.value = '';
 
     showTyping();
 
-    // 模擬思考延遲 400ms ~ 700ms
+    // 若已設定 Google Apps Script 後端，優先向雲端後端請求
+    if (GAS_API_URL) {
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'chat', message: query })
+        });
+        const data = await response.json();
+        removeTyping();
+        if (data && data.reply) {
+          appendMessage('bot', data.reply);
+          playPuppyBark();
+          return;
+        }
+      } catch (err) {
+        console.warn('GAS chat error, using local fallback:', err);
+      }
+    }
+
+    // 本機智慧知識庫備援回覆
     setTimeout(() => {
       removeTyping();
       const reply = generateReply(query);
