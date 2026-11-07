@@ -1,22 +1,32 @@
 /**
  * ========================================================
  * Nexus Hub - Google Apps Script (GAS) 後端服務
- * 整合：OpenRouter AI 大腦 (Claude Haiku 5.5) + 吉娃娃客服 + 聯絡表單寄信
+ * 整合：OpenRouter AI 大腦 + 吉娃娃客服 + 聯絡表單寄信
+ * 安全性：使用「指令碼屬性 (Script Properties)」保護 API 金鑰
  * ========================================================
  */
 
 // --------------------------------------------------------
-// 1. OpenRouter AI 大腦設定 (安全保存在 Google 雲端，前端看不到)
+// 1. 從「指令碼屬性」安全讀取設定（避免金鑰明文寫在程式碼中）
 // --------------------------------------------------------
-var OPENROUTER_API_KEY = "sk-or-v1-YOUR_OPENROUTER_KEY_HERE";
-var OPENROUTER_MODEL = "anthropic/claude-haiku-5.5";
+function getOpenRouterConfig() {
+  var properties = PropertiesService.getScriptProperties();
+  return {
+    apiKey: properties.getProperty("OPENROUTER_API_KEY") || "",
+    model: properties.getProperty("OPENROUTER_MODEL") || "anthropic/claude-haiku-5.5"
+  };
+}
 
-// 2. GET 測試端點（驗證後端是否活著）
+// 2. GET 測試端點（驗證後端是否活著與金鑰狀態）
 function doGet(e) {
+  var config = getOpenRouterConfig();
+  var hasKey = Boolean(config.apiKey && config.apiKey.length > 5);
+
   var output = {
     status: "success",
     message: "🐶 吉娃娃 OpenRouter AI 後端服務正常運行中！",
-    model: OPENROUTER_MODEL,
+    model: config.model,
+    apiKeyConfigured: hasKey ? "已成功從指令碼屬性載入金鑰 ✔️" : "尚未設定 OPENROUTER_API_KEY ❌",
     timestamp: new Date().toISOString()
   };
   return ContentService.createTextOutput(JSON.stringify(output))
@@ -62,9 +72,15 @@ function doPost(e) {
 }
 
 // --------------------------------------------------------
-// 4. 呼叫 OpenRouter AI (Claude Haiku 5.5 大腦)
+// 4. 呼叫 OpenRouter AI (從指令碼屬性抓取 Key 與 Model)
 // --------------------------------------------------------
 function callOpenRouterAI(userMessage) {
+  var config = getOpenRouterConfig();
+  if (!config.apiKey) {
+    Logger.log("⚠️ 尚未在指令碼屬性中設定 OPENROUTER_API_KEY");
+    return null;
+  }
+
   var url = "https://openrouter.ai/api/v1/chat/completions";
 
   // 吉娃娃專屬個性人設 Prompt
@@ -79,7 +95,7 @@ function callOpenRouterAI(userMessage) {
     "6. 請一律使用自然流暢的【繁體中文】回答，長度適中（約 2-4 句話），親切好聊！";
 
   var payload = {
-    model: OPENROUTER_MODEL,
+    model: config.model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userMessage }
@@ -90,7 +106,7 @@ function callOpenRouterAI(userMessage) {
     method: "post",
     contentType: "application/json; charset=utf-8",
     headers: {
-      "Authorization": "Bearer " + OPENROUTER_API_KEY,
+      "Authorization": "Bearer " + config.apiKey,
       "HTTP-Referer": "https://sakuraimio0531-bot.github.io/",
       "X-Title": "Nexus Hub Chihuahua Bot"
     },
@@ -125,7 +141,7 @@ function handleChatbot(message) {
     return { success: true, reply: "汪？你有說話嗎？吉娃娃的耳朵動了一下！🐶" };
   }
 
-  // 1. 優先使用 OpenRouter Claude Haiku 5.5 大腦運算
+  // 1. 優先使用 OpenRouter AI 大腦運算
   var aiReply = callOpenRouterAI(q);
 
   // 2. 如果 AI 成功回覆，直接採用
@@ -133,7 +149,7 @@ function handleChatbot(message) {
   if (aiReply) {
     finalReply = aiReply;
   } else {
-    // 3. 備援規則（當 OpenRouter 網路異常時自動啟用）
+    // 3. 備援規則（當 OpenRouter 網路異常或未設定金鑰時自動啟用）
     var lower = q.toLowerCase();
     if (/你是誰|叫什麼|名字/.test(lower)) {
       finalReply = "汪汪！我是吉寶，這座 Nexus Hub 的守護吉娃娃！我有高達 100% 的熱情度喔！";
